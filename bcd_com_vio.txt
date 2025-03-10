@@ -99,3 +99,4 @@ show full tables;
 
 desc compras_por_usuario;
 
+----
