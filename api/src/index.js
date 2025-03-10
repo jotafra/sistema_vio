@@ -19,7 +19,7 @@ class AppController {
 
   routes() {
     const apiRoutes= require('./routes/apiRoutes')
-    this.express.use('/api/v1/',apiRoutes);// Definição da URL Base
+    this.express.use('/api/v1/',apiRoutes);// Definição da URL Base http://localhost:5000/api/v1/
   }
 }
 
