@@ -1,0 +1,26 @@
+
+Testing ever rotes in the POSTMAN 
+
+{
+    "name": "",
+    "cpf": "",
+    "email": "",
+    "password": "",
+    "data_nascimento": ""
+}
+
+============================== URL Base ==================================
+Usuário:
+
+POST, GET and PUT
+http://localhost:5000/api/v1/user
+
+DELETE
+http://localhost:5000/api/v1/user/id
+
+User login
+http://localhost:5000/api/v1/login
+
+
+
+
