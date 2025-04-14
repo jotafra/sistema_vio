@@ -102,6 +102,8 @@ delimiter ;
 
 -- -=-=-=-=-=-=-=-=-=-=-=-=-=- Atividade 14/04 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+-- IP da máquina - 10.89.240.75
+
 -- mostrar ingressos vendidos por evento 
 delimiter $$
 
