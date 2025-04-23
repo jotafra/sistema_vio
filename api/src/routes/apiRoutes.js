@@ -28,12 +28,13 @@ router.delete('/evento/:id', eventoController.deleteEvento);
 router.get('/evento/data', eventoController.getEventosPorData);
 router.get("/evento/:data", eventoController.getEventosData7Dias);
 
-
 //Rotas ingressoController
 router.post('/ingresso', ingressoController.createIngresso);
 router.get('/ingresso', ingressoController.getAllIngressos);
 router.put('/ingresso', ingressoController.updateIngresso);
 router.delete('/ingresso/:id', ingressoController.deleteIngresso);
+
+router.get('/ingresso/evento/:id', ingressoController.getByIdEvento);
 
 
 module.exports = router
