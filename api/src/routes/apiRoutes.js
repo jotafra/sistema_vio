@@ -7,6 +7,8 @@ const orgController = require("../controllers/orgController");
 const eventoController = require('../controllers/eventoController');
 const ingressoController = require('../controllers/ingressoController');
 
+const compraController = require("../controllers/compraController")
+
 //Rotas userController
 router.post('/user', userController.createUser);
 router.post('/login', userController.loginUser);
@@ -41,5 +43,8 @@ router.delete('/ingresso/:id', ingressoController.deleteIngresso);
 
 router.get('/ingresso/evento/:id', ingressoController.getByIdEvento);
 
+// compraController
+router.post('/comprasimples', compraController.registrarCompraSimples);
+router.post('/compra', compraController.registrarCompra);
 
 module.exports = router
