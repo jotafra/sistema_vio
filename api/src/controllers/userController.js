@@ -2,6 +2,8 @@ const connect = require("../db/connect");
 const jwt = require("jsonwebtoken");
 const validateUser = require("../services/validateUser");
 const validateCpf = require("../services/validateCpf");
+const bcrypt = require("bcrypt");
+const SALT_ROUNDS = 10;
 
 module.exports = class userController {
   static async createUser(req, res) {
@@ -18,25 +20,28 @@ module.exports = class userController {
         return res.status(400).json(cpfError);
       }
 
+      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+      
       const query = `INSERT INTO usuario (cpf, password, email, name, data_nascimento) VALUES (?, ?, ?, ?, ?)`;
       connect.query(
         query,
-        [cpf, password, email, name, data_nascimento],
+        [cpf, hashedPassword, email, name, data_nascimento],
         (err) => {
           if (err) {
             if (err.code === "ER_DUP_ENTRY") {
-              if (err.message.includes("for key 'email'")) {
+              if (err.message.includes("email")) {
                 return res.status(400).json({ error: "Email já cadastrado" });
-              } else {
-                return res
-                  .status(500)
-                  .json({ error: "Erro interno do servidor", err });
-              }
+              } 
+            } else {
+              return res
+                .status(500)
+                .json({ error: "Erro interno do servidor", err });
             }
+          } else {
+            return res
+              .status(201)
+              .json({ message: "Usuário criado com sucesso" });
           }
-          return res
-            .status(201)
-            .json({ message: "Usuário criado com sucesso" });
         }
       );
     } catch (error) {
@@ -141,7 +146,10 @@ module.exports = class userController {
 
         const user = results[0];
 
-        if (user.password !== password) {
+        // Compara a senha enviada na requisição com o hash do banco
+        const passwordOK = bcrypt.compareSync(password, user.password);
+
+        if (!passwordOK) {
           return res.status(401).json({ error: "Senha incorreta" });
         }
 
@@ -149,15 +157,14 @@ module.exports = class userController {
           expiresIn: "1h",
         });
 
-        // Remove um atributo de um obj 
+        // Remove um atributo de um obj
         delete user.password;
 
         return res.status(200).json({
-          message: "Login bem-sucedido", 
+          message: "Login bem-sucedido",
           user,
-          token
-        })
-
+          token,
+        });
       });
     } catch (error) {
       console.error("Erro ao executar a consulta:", error);
