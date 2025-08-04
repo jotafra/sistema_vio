@@ -20,8 +20,8 @@ module.exports = class userController {
         return res.status(400).json(cpfError);
       }
 
-      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-      
+      const hashedPassword =  await bcrypt.hash(password,SALT_ROUNDS);
+
       const query = `INSERT INTO usuario (cpf, password, email, name, data_nascimento) VALUES (?, ?, ?, ?, ?)`;
       connect.query(
         query,
@@ -31,17 +31,17 @@ module.exports = class userController {
             if (err.code === "ER_DUP_ENTRY") {
               if (err.message.includes("email")) {
                 return res.status(400).json({ error: "Email já cadastrado" });
-              } 
+              }
             } else {
+              console.log(err);
               return res
                 .status(500)
                 .json({ error: "Erro interno do servidor", err });
             }
-          } else {
-            return res
-              .status(201)
-              .json({ message: "Usuário criado com sucesso" });
           }
+          return res
+            .status(201)
+            .json({ message: "Usuário criado com sucesso" });
         }
       );
     } catch (error) {
@@ -68,7 +68,7 @@ module.exports = class userController {
     }
   }
   static async updateUser(req, res) {
-    const { cpf, email, password, name, id } = req.body;
+    const { cpf, email, password, name, data_nascimento, id } = req.body;
 
     const validationError = validateUser(req.body);
     if (validationError) {
@@ -81,18 +81,30 @@ module.exports = class userController {
         return res.status(400).json(cpfError);
       }
       const query =
-        "UPDATE usuario SET cpf = ?, email = ?, password = ?, name = ? WHERE id_usuario = ?";
-      connect.query(query, [cpf, email, password, name, id], (err, results) => {
-        if (err) {
-          return res.status(500).json({ error: "Erro interno do servidor" });
+        "UPDATE usuario SET cpf = ?, email = ?, password = ?, name = ? , data_nascimento=? WHERE id_usuario = ?";
+      connect.query(
+        query,
+        [cpf, email, password, name, data_nascimento, id],
+        (err, results) => {
+          if (err) {
+            if (err.code === "ER_DUP_ENTRY") {
+              if (err.message.includes("email")) {
+                return res.status(400).json({ error: "Email já cadastrado" });
+              }
+            } else {
+              return res
+                .status(500)
+                .json({ error: "Erro interno do servidor", err });
+            }
+          }
+          if (results.affectedRows === 0) {
+            return res.status(404).json({ error: "Usuário não encontrado" });
+          }
+          return res
+            .status(200)
+            .json({ message: "Usuário atualizado com sucesso" });
         }
-        if (results.affectedRows === 0) {
-          return res.status(404).json({ error: "Usuário não encontrado" });
-        }
-        return res
-          .status(200)
-          .json({ message: "Usuário atualizado com sucesso" });
-      });
+      );
     } catch (error) {
       return res.status(500).json({ error });
     }
@@ -106,6 +118,11 @@ module.exports = class userController {
       connect.query(query, values, function (err, results) {
         if (err) {
           console.error(err);
+          if (err.code === "ER_ROW_IS_REFERENCED_2") {
+            return res
+              .status(500)
+              .json({ error: "Este usuário não pode ser apagado" });
+          }
           return res.status(500).json({ error: "Erro interno do servidor" });
         }
 
@@ -123,7 +140,7 @@ module.exports = class userController {
     }
   }
 
-  // Método de Login - Implementar
+  // Método de Login 
   static async loginUser(req, res) {
     const { email, password } = req.body;
 
@@ -146,25 +163,29 @@ module.exports = class userController {
 
         const user = results[0];
 
-        // Compara a senha enviada na requisição com o hash do banco
-        const passwordOK = bcrypt.compareSync(password, user.password);
+        // Comparar a senha enviada na requisição com o hash do banco
+        const passwordOK = bcrypt.compareSync(password,user.password);
 
         if (!passwordOK) {
           return res.status(401).json({ error: "Senha incorreta" });
         }
 
-        const token = jwt.sign({ id: user.id_usuario }, process.env.SECRET, {
-          expiresIn: "1h",
-        });
+        const token = jwt.sign(
+           {id: user.id_usuario }, 
+           process.env.SECRET, 
+           {expiresIn: "1h",}
+          );
 
-        // Remove um atributo de um obj
-        delete user.password;
+          // Remove um atributo de um obj
+          delete user.password;
 
-        return res.status(200).json({
-          message: "Login bem-sucedido",
-          user,
-          token,
-        });
+          return res.status(200).json({
+            message: "Login bem-sucedido",
+            user,
+            token
+          })
+
+
       });
     } catch (error) {
       console.error("Erro ao executar a consulta:", error);
